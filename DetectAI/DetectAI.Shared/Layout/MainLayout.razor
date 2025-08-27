@@ -25,9 +25,11 @@
             <MudText Typo="Typo.h5" Class="mt-1">Detect AI</MudText>
         </MudDrawerHeader>
         <MudNavMenu>
-            <MudNavLink Match="NavLinkMatch.All">Detect</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All">Detection History</MudNavLink>          
-            <MudNavLink Match="NavLinkMatch.All">Settings</MudNavLink>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home"><MudText Typo="Typo.body1">Detect</MudText></MudNavLink>
+            <MudNavLink Href="/History" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.History"><MudText Typo="Typo.body1">Detection History</MudText></MudNavLink>
+            <MudNavLink Href="/Settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings"><MudText Typo="Typo.body1">Settings</MudText></MudNavLink>
+            <MudNavLink Href="/AnalysisResults" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Abc"><MudText Typo="Typo.body1">AnalysisResults</MudText></MudNavLink>
+
         </MudNavMenu>
         @*NavMenu*@
     </MudDrawer>
