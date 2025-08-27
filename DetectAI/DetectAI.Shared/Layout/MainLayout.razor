@@ -10,7 +10,7 @@
 <MudSnackbarProvider />
 <MudPopoverProvider />
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="1" Color="@(_dark == true ? Color.Dark : Color.Primary)">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
@@ -22,8 +22,13 @@
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
         <MudDrawerHeader>
-            <MudText Typo="Typo.h5" Class="mt-1">Application</MudText>
+            <MudText Typo="Typo.h5" Class="mt-1">Detect AI</MudText>
         </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Match="NavLinkMatch.All">Detect</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All">Detection History</MudNavLink>          
+            <MudNavLink Match="NavLinkMatch.All">Settings</MudNavLink>
+        </MudNavMenu>
         @*NavMenu*@
     </MudDrawer>
     <MudMainContent>
@@ -36,7 +41,7 @@
     <span class="dismiss">🗙</span>
 </div>
 @code {
-    bool _drawerOpen = true;
+    bool _drawerOpen = false;
     private MudThemeProvider? _mudProvider;
     private bool _dark = false;
 

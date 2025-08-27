@@ -1,7 +1,202 @@
-﻿@page "/"
-@using DetectAI.Shared.Services
+﻿    @page "/"
+    @using MudBlazor
+    @using FluentValidation
+    @inject ISnackbar Snackbar
+
+    <style>
+        .file-upload-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 10;
+            opacity: 0;
+        }
+    </style>
+    
+@if (hasUploadedFiles)
+{
+    <MudStack Class="mx-8 justify-content-center align-items-center">
+        <MudText Typo="Typo.h3" Class="mt-8">Analyzing Content</MudText>
+        <MudText Typo="Typo.h6" Class="d-flex align-items-center">Please Wait</MudText>
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </MudStack>
+}
+else
+{
+    <MudStack Class="mx-8">
+        <MudText Typo="Typo.h3" Class="mt-8">AI Content Detector</MudText>
+        <MudText Typo="Typo.h6" Class="d-flex align-items-center">
+            Start analyzing AI content from media:
+            <MudChipSet T="string"
+                        @bind-SelectedValue="_detectionMode"
+                        @bind-SelectedValue:after="OnModeChanged"
+                        SelectionMode="SelectionMode.SingleSelection"
+                        CheckMark
+                        Class="ml-4">
+                <MudChip Text="Video" Value="@("Video")" Color="Color.Primary">
+                    <MudIcon Icon="@Icons.Material.Filled.VideoFile" />Video
+                </MudChip>
+                <MudChip Text="Image" Value="@("Image")" Color="Color.Primary">
+                    <MudIcon Icon="@Icons.Material.Filled.Image" />Image
+                </MudChip>
+                <MudChip Text="Audio" Value="@("Audio")" Color="Color.Primary">
+                    <MudIcon Icon="@Icons.Material.Filled.AudioFile" />Audio
+                </MudChip>
+                <MudChip Text="Text" Value="@("Text")" Color="Color.Primary">
+                    <MudIcon Icon="@Icons.Material.Filled.TextSnippet" />Text
+                </MudChip>
+            </MudChipSet>
+        </MudText>
+
+        <MudForm Model="@_model"
+                 @bind-IsValid="_isValid"
+                 @bind-IsTouched="_isTouched">
+            <!-- Validation="@_validationRules.ValidateValue -->
+
+            <MudItem xs="12">
+                <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                               @key="AcceptStringChips"
+                               Accept="@AcceptStringChips"
+                               @ref="@_fileUpload"
+                               @bind-Files="_model.Files"
+                               For="@(() => _model.Files)"
+                               AppendMultipleFiles
+                               Hidden="false"
+                               InputClass="file-upload-input"
+                               ErrorText="@string.Empty"
+                               tabindex="-1"
+                               @ondrop="@ClearDragClass"
+                               @ondragenter="@SetDragClass"
+                               @ondragleave="@ClearDragClass"
+                               @ondragend="@ClearDragClass">
+                    <ActivatorContent>
+                        <MudPaper Height="300px" Outlined="true" Class="@_dragClass">
+                            <MudText Typo="Typo.h6">Drag and drop files here or click</MudText>
+                            @foreach (var file in _model.Files?.Select(f => f.Name) ?? Enumerable.Empty<string>())
+                            {
+                                <MudChip T="string" Color="Color.Dark" Text="@file" />
+                            }
+                        </MudPaper>
+                    </ActivatorContent>
+                </MudFileUpload>
+                <MudToolBar Gutters="@false"
+                            Class="relative d-flex justify-end gap-4">
+                    <MudButton Color="Color.Primary"
+                               OnClick="@OpenFilePickerAsync"
+                               Variant="Variant.Filled">
+                        <MudIcon Icon="@Icons.Material.Filled.UploadFile"></MudIcon>
+                        Open file picker
+                    </MudButton>
+                    <MudButton Color="Color.Primary"
+                               Disabled="@(!_isValid || !_isTouched || _model.Files is null || !_model.Files.Any() || string.IsNullOrEmpty(_detectionMode))"
+                               OnClick="@Upload"
+                               Variant="Variant.Filled">
+                        Upload
+                    </MudButton>
+                    <MudButton Color="Color.Error"
+                               Disabled="@(_model.Files is null || !_model.Files.Any())"
+                               OnClick="@ClearAsync"
+                               Variant="Variant.Filled">
+                        Clear
+                    </MudButton>
+                </MudToolBar>
+            </MudItem>
+        </MudForm>
+
+    </MudStack>
+}
 
 @code {
+    #nullable enable
+    public class Model
+    {
+        public IReadOnlyList<IBrowserFile>? Files { get; set; } = new List<IBrowserFile>();
+    }
+
+    private Model _model = new();
+    private ModelFluentValidator _validationRules = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+    private bool _isValid;
+    private bool _isTouched;
+    private const string FileContent = "this is content";
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private List<string> _detectionMethodSelected = new();
+    private string? _detectionMode = "Video";
+    public bool hasUploadedFiles = false;
+
+    private string AcceptStringChips =>
+        !string.IsNullOrEmpty(_detectionMode)
+        && _acceptByMethod.TryGetValue(_detectionMode, out var accept)
+            ? accept
+            : string.Empty;
 
 
+    private void Upload()
+    {
+        Snackbar.Add($"Uploading {_model.Files?.Count ?? 0} file(s) for {_detectionMode}...", MudBlazor.Severity.Info);
+
+        // TODO: actual upload implementation
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        hasUploadedFiles = true;
+    }
+
+    private void SetDragClass()
+    => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+    => _dragClass = DefaultDragClass;
+
+    private Task OpenFilePickerAsync()
+    => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private Task ClearAsync()
+    => _fileUpload?.ClearAsync() ?? Task.CompletedTask;
+
+    public class ModelFluentValidator : AbstractValidator<Model>
+    {
+        public ModelFluentValidator()
+        {
+            RuleFor(x => x.Files)
+            .NotEmpty()
+            .WithMessage("There must be at least 1 file.");
+        }
+
+        public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
+        {
+            var result = await ValidateAsync(ValidationContext<Model>.CreateWithOptions((Model)model, x => x.IncludeProperties(propertyName)));
+            return result.IsValid ? Array.Empty<string>() : result.Errors.Select(e => e.ErrorMessage);
+        };
+    }
+
+    private static readonly Dictionary<string, string> _acceptByMethod = new()
+    {
+        ["Image"] = "image/*,.jpg,.jpeg,.png,.webp,.bmp,.tiff",
+        ["Video"] = "video/*,.mp4,.mov,.avi,.mkv,.webm",
+        ["Audio"] = "audio/*,.mp3,.wav,.flac,.aac,.ogg",
+        ["Text"] = "text/plain,.txt,.md,.csv" // expand if you’ll parse others
+        // NOTE: Avoid .docx/.pdf unless you actually support them.
+    };
+
+    private string AcceptString
+        => (_detectionMethodSelected?.FirstOrDefault() is { } mode
+            && _acceptByMethod.TryGetValue(mode, out var accept))
+            ? accept
+            : string.Empty; // allow anything when not selected
+
+    private async Task OnModeChanged()
+    {
+        await ClearAsync();          // your existing method
+        StateHasChanged();
+    }
+    public async Task OnDetectionChanged(string selected)
+    {
+        //_detectionMethodSelected = selected;
+
+        _detectionMethodSelected.Add(selected);
+
+        await ClearAsync();
+        StateHasChanged();
+    }
 }

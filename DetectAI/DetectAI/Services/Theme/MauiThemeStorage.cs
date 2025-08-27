@@ -1,6 +1,6 @@
 ﻿using DetectAI.Shared.Services.Theme;
 
-namespace DetectAI.Maui.Services.Theme
+namespace DetectAI.Services.Theme
 {
     public class MauiThemeStorage : IThemeStorage
     {

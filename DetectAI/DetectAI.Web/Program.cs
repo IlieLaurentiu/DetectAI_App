@@ -17,6 +17,7 @@ builder.Services.AddMudServices();
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
 builder.Services.AddScoped<IThemeStorage, BrowserThemeStorage>();
+builder.Services.AddScoped<DetectAI.Shared.Services.DetectionApiClient>();
 
 var app = builder.Build();
 

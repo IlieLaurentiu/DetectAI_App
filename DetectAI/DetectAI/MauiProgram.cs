@@ -1,5 +1,5 @@
-﻿using DetectAI.Maui.Services.Theme;
-using DetectAI.Services;
+﻿using DetectAI.Services;
+using DetectAI.Services.Theme;
 using DetectAI.Shared.Services;
 using DetectAI.Shared.Services.Theme;
 using Microsoft.Extensions.Logging;
@@ -13,8 +13,9 @@ namespace DetectAI
         {
             var builder = MauiApp.CreateBuilder();
             builder.Services.AddMudServices();
-            builder.Services.AddScoped<IThemeService, ThemeService>();
+            builder.Services.AddSingleton<IThemeService, ThemeService>();
             builder.Services.AddSingleton<IThemeStorage, MauiThemeStorage>();
+            builder.Services.AddSingleton<DetectAI.Shared.Services.DetectionApiClient>();
 
             builder
                 .UseMauiApp<App>()
