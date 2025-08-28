@@ -121,6 +121,9 @@ namespace DetectAI.Shared.Pages
                 Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
                 Snackbar.Add($"Uploading {_model.Files.Count} file(s) for {_detectionMode}...", Severity.Info);
 
+                State.LastFileName = file.Name;
+                State.LastFileContentType = file.ContentType;
+                State.LastFileDataUrl = await ToDataUrlAsync(file);
 
                 var result = await ApiClient.AnalyzeAsync(file);
                 State.LastResult = result;
@@ -137,7 +140,15 @@ namespace DetectAI.Shared.Pages
                 isUploading = false;
             }
         }
-
+        private static async Task<string> ToDataUrlAsync(IBrowserFile file)
+        {
+            using var s = file.OpenReadStream(200 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await s.CopyToAsync(ms);
+            var base64 = Convert.ToBase64String(ms.ToArray());
+            var mime = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
+            return $"data:{mime};base64,{base64}";
+        }
 
         private async Task OnModeChanged(string _)
         {

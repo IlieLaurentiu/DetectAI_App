@@ -4,17 +4,18 @@
 <div class="rg">
     <svg viewBox="0 0 200 200" class="rg-svg">
         @* Track arc (light) *@
-        <path d="@ArcPath(StartAngleDeg, StartAngleDeg + SweepDeg)"
-              class="rg-arc rg-arc-track" stroke-width="@Stroke" />
+        <path d="@ArcPath(StartAngleDeg, StartAngleDeg + SweepDeg)" stroke-width="@Stroke" class="rg-arc rg-arc-track" />
 
         @* Value arc (primary) *@
-        <path d="@ArcPath(StartAngleDeg, StartAngleDeg + SweepDeg * ClampedT)"
-              class="rg-arc rg-arc-value" stroke-width="@Stroke" />
+        <path d="@ArcPath(StartAngleDeg, StartAngleDeg + SweepDeg * ClampedT)" stroke-width="@Stroke" class="rg-arc rg-arc-value" />
+
 
         @* Needle *@
         <g transform="rotate(@NeedleAngle 100 100)">
-            <line x1="100" y1="100" x2="@NeedleX" y2="@NeedleY" class="rg-needle" />
-            <circle cx="100" cy="100" r="4" class="rg-needle-hub" />
+            <line x1="100" y1="100" x2="@NeedleX" y2="@NeedleY"
+                  class="rg-needle"
+                  style="stroke-width:@NeedleThickness" />
+            <circle cx="100" cy="100" r="@HubRadius" class="rg-needle-hub" />
         </g>
     </svg>
 
@@ -85,6 +86,11 @@
         }
     /* spacing left label from right */
 
+    .rg-needle {
+        stroke: var(--mud-palette-text-primary);
+        /* remove stroke-width here */
+    }
+
 </style>
 
 @code {
@@ -97,6 +103,10 @@
     [Parameter] public double SweepDeg { get; set; } = 270;       // how wide the dial is
     [Parameter] public double Radius { get; set; } = 80;
     [Parameter] public double Stroke { get; set; } = 16;
+    [Parameter] public double NeedleThickness { get; set; } = 3.5;
+    [Parameter] public double HubRadius { get; set; } = 4;
+    [Parameter] public double NeedleGapFactor { get; set; } = 0.8;
+
 
     // Value formatting
     [Parameter] public string? Format { get; set; } = "0.##";     // e.g. "0.##%", "0.###"
@@ -136,7 +146,7 @@
     private static double Deg2Rad(double deg) => Math.PI * deg / 180.0;
 
     // Needle end (relative to center after rotation)
-    private double NeedleLength => Radius - Stroke * 0.8;
+    private double NeedleLength => Radius - Stroke * NeedleGapFactor;
     private double NeedleX => 100 + NeedleLength * Math.Cos(Deg2Rad(0)); // 0 before rotation
     private double NeedleY => 100 + NeedleLength * Math.Sin(Deg2Rad(0));
 }
