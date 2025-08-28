@@ -1,0 +1,52 @@
+@page "/Detect"
+@using DetectAI.Shared.Models
+@using DetectAI.Shared.Services
+@using DetectAI.Shared.Services.Theme
+@using DetectAI.Shared.Validators
+@using DetectAI.Shared.Components
+@using MudBlazor
+
+
+<MudStack Class="mx-8 d-flex flex-column justify-content-center align-items-center">
+    @if (hasUploadedFiles)
+    {
+        <MudText Typo="Typo.h3" Class="mt-8">Sending content to Analysis</MudText>
+        <MudText Typo="Typo.h6" Class="d-flex align-items-center">Waiting API Response...</MudText>
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudText Typo="Typo.h3" Class="mt-8">AI Content Detector</MudText>
+        <MudText Typo="Typo.h6" Class="d-flex align-items-center">
+        Start AI content detection from:
+        <DetectionModeSelector @bind-SelectedMode="_detectionMode" OnModeChanged="OnModeChanged" />
+        </MudText>
+
+
+        @if (_detectionMode == "Text")
+        {
+        <TextPasteArea @bind-Text="TextFieldString" />
+        }
+        else
+        {
+        <MudForm Model="@_model"
+                 @bind-IsValid="_isValid"
+                 @bind-IsTouched="_isTouched"
+                 Validation="@_validator.ValidateValue">
+
+                <FileDropZone @ref="_dropZone"
+                              Accept="@AcceptRules.AcceptForMode(_detectionMode)"
+                              Files="@_model.Files"
+                              FilesChanged="OnFilesChanged" />
+
+
+                <UploadToolbar Busy="@isUploading"
+                               CanUpload="@(_isValid && _isTouched && _model.Files is not null && _model.Files.Any() && !string.IsNullOrEmpty(_detectionMode))"
+                               CanClear="@(_model.Files is not null && _model.Files.Any())"
+                               OnOpenPicker="OpenFilePickerAsync"
+                               OnUpload="Upload"
+                               OnClear="ClearAsync" />
+        </MudForm>
+        }
+    }
+</MudStack>

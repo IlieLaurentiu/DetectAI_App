@@ -1,0 +1,35 @@
+@using MudBlazor
+
+<MudChipSet T="string"
+            SelectionMode="SelectionMode.SingleSelection"
+            SelectedValue="@SelectedMode"
+            SelectedValueChanged="@OnSelectedValueChanged"
+            CheckMark
+            Class="ml-4">
+
+    <MudChip Text="Media" Value="@("Media")" Color="Color.Primary" Variant="@(SelectedMode == "Media" ? Variant.Outlined : Variant.Filled)">
+        <MudIcon Icon="@Icons.Material.Filled.VideoFile" Class="mr-1" />Media
+    </MudChip>
+
+    <MudChip Text="Text" Value="@("Text")"  Color="Color.Primary" Variant="@(SelectedMode == "Text" ? Variant.Outlined : Variant.Filled)">
+        <MudIcon Icon="@Icons.Material.Filled.TextFields" Class="mr-1" />Text
+    </MudChip>
+
+</MudChipSet>
+
+
+@code {
+    [Parameter] public string SelectedMode { get; set; } = "Media";
+    [Parameter] public EventCallback<string> SelectedModeChanged { get; set; }
+    [Parameter] public EventCallback<string> OnModeChanged { get; set; }
+
+
+    private async Task OnSelectedValueChanged(string value)
+    {
+        SelectedMode = value;
+        if (SelectedModeChanged.HasDelegate)
+        await SelectedModeChanged.InvokeAsync(value);
+        if (OnModeChanged.HasDelegate)
+        await OnModeChanged.InvokeAsync(value);
+    }
+}

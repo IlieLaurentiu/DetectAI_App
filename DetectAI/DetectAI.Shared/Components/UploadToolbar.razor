@@ -1,0 +1,32 @@
+@using MudBlazor
+
+
+<MudToolBar Gutters="@false" Class="relative d-flex justify-end gap-4">
+    <MudButton Color="Color.Primary" Disabled="@Busy" OnClick="OpenPicker" Variant="Variant.Filled">
+        <MudIcon Icon="@Icons.Material.Filled.UploadFile"></MudIcon>
+        Open file picker
+    </MudButton>
+    <MudButton Color="Color.Primary" Disabled="@(!CanUpload || Busy)" OnClick="Upload" Variant="Variant.Filled">
+        Upload
+    </MudButton>
+    <MudButton Color="Color.Error" Disabled="@(!CanClear || Busy)" OnClick="Clear" Variant="Variant.Filled">
+        Clear
+    </MudButton>
+</MudToolBar>
+
+
+@code {
+    [Parameter] public bool CanUpload { get; set; }
+    [Parameter] public bool CanClear { get; set; }
+    [Parameter] public bool Busy { get; set; }
+
+
+    [Parameter] public EventCallback OnOpenPicker { get; set; }
+    [Parameter] public EventCallback OnUpload { get; set; }
+    [Parameter] public EventCallback OnClear { get; set; }
+
+
+    private async Task OpenPicker() { if (OnOpenPicker.HasDelegate) await OnOpenPicker.InvokeAsync(); }
+    private async Task Upload() { if (OnUpload.HasDelegate) await OnUpload.InvokeAsync(); }
+    private async Task Clear() { if (OnClear.HasDelegate) await OnClear.InvokeAsync(); }
+}

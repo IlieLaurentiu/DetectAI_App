@@ -1,5 +1,6 @@
 ﻿using DetectAI.Services;
 using DetectAI.Services.Theme;
+using DetectAI.Shared.Models;
 using DetectAI.Shared.Services;
 using DetectAI.Shared.Services.Theme;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,12 @@ namespace DetectAI
             builder.Services.AddMudServices();
             builder.Services.AddSingleton<IThemeService, ThemeService>();
             builder.Services.AddSingleton<IThemeStorage, MauiThemeStorage>();
-            builder.Services.AddSingleton<DetectAI.Shared.Services.DetectionApiClient>();
+            builder.Services.AddSingleton<DetectAIApiClient>();
+            builder.Services.AddSingleton(sp => new HttpClient
+            {
+                BaseAddress = new Uri("http://127.0.0.1:8000") // your API base
+            });
+            builder.Services.AddSingleton<ForensicsState>();
 
             builder
                 .UseMauiApp<App>()

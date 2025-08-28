@@ -1,0 +1,142 @@
+@* RadialGauge.razor *@
+@using System.Globalization
+
+<div class="rg">
+    <svg viewBox="0 0 200 200" class="rg-svg">
+        @* Track arc (light) *@
+        <path d="@ArcPath(StartAngleDeg, StartAngleDeg + SweepDeg)"
+              class="rg-arc rg-arc-track" stroke-width="@Stroke" />
+
+        @* Value arc (primary) *@
+        <path d="@ArcPath(StartAngleDeg, StartAngleDeg + SweepDeg * ClampedT)"
+              class="rg-arc rg-arc-value" stroke-width="@Stroke" />
+
+        @* Needle *@
+        <g transform="rotate(@NeedleAngle 100 100)">
+            <line x1="100" y1="100" x2="@NeedleX" y2="@NeedleY" class="rg-needle" />
+            <circle cx="100" cy="100" r="4" class="rg-needle-hub" />
+        </g>
+    </svg>
+
+    <div class="rg-labels">
+        <div class="rg-value">@FormattedValue</div>
+        <div class="rg-minmax">
+            <span>@Min.ToString(MinMaxFormat, CultureInfo.InvariantCulture)</span>
+            <span>@Max.ToString(MinMaxFormat, CultureInfo.InvariantCulture)</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rg {
+        width: 140px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .rg-svg {
+        width: 100%;
+        height: auto;
+    }
+
+    .rg-arc {
+        fill: none;
+        stroke-linecap: round;
+    }
+
+    .rg-arc-track {
+        stroke: rgba(0,0,0,0.15);
+    }
+
+    .rg-arc-value {
+        stroke: var(--mud-palette-primary);
+    }
+
+    .rg-needle {
+        stroke: var(--mud-palette-text-primary);
+        stroke-width: 2.5;
+    }
+
+    .rg-needle-hub {
+        fill: var(--mud-palette-text-primary);
+    }
+
+    .rg-labels {
+        text-align: center;
+        margin-top: 6px;
+    }
+
+    .rg-value {
+        font-size: .9rem;
+        font-weight: 600;
+    }
+
+    .rg-minmax {
+        font-size: .75rem;
+        color: var(--mud-palette-text-secondary);
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+        .rg-minmax span:first-child {
+            margin-right: 32px;
+        }
+    /* spacing left label from right */
+
+</style>
+
+@code {
+    [Parameter] public double Min { get; set; } = 0;
+    [Parameter] public double Max { get; set; } = 100;
+    [Parameter] public double Value { get; set; } = 0;
+
+    // Gauge geometry
+    [Parameter] public double StartAngleDeg { get; set; } = 135;  // where the dial starts
+    [Parameter] public double SweepDeg { get; set; } = 270;       // how wide the dial is
+    [Parameter] public double Radius { get; set; } = 80;
+    [Parameter] public double Stroke { get; set; } = 16;
+
+    // Value formatting
+    [Parameter] public string? Format { get; set; } = "0.##";     // e.g. "0.##%", "0.###"
+    [Parameter] public string MinMaxFormat { get; set; } = "0.##";
+
+    // Colors (use CSS variables by default)
+    [Parameter] public string TrackClass { get; set; } = "rg-arc-track";
+    [Parameter] public string ValueClass { get; set; } = "rg-arc-value";
+
+    private double T => (Value - Min) / Math.Max(Max - Min, 1e-9);
+    private double ClampedT => Math.Clamp(T, 0.0, 1.0);
+    private double NeedleAngle => StartAngleDeg + SweepDeg * ClampedT;
+
+    private string FormattedValue =>
+        Value.ToString(Format ?? "0.##", CultureInfo.InvariantCulture);
+
+    private string ArcPath(double startDeg, double endDeg)
+    {
+        // Convert to radians
+        double s = Deg2Rad(startDeg);
+        double e = Deg2Rad(endDeg);
+        // Center at (100,100)
+        double cx = 100, cy = 100, r = Radius;
+        // Start point
+        double x1 = cx + r * Math.Cos(s);
+        double y1 = cy + r * Math.Sin(s);
+        // End point
+        double x2 = cx + r * Math.Cos(e);
+        double y2 = cy + r * Math.Sin(e);
+        // Large-arc-flag (1 if sweep > 180)
+        int large = (endDeg - startDeg) % 360 > 180 ? 1 : 0;
+
+        // Path: move to start, arc to end (clockwise)
+        return $"M {x1:F3} {y1:F3} A {r:F3} {r:F3} 0 {large} 1 {x2:F3} {y2:F3}";
+    }
+
+    private static double Deg2Rad(double deg) => Math.PI * deg / 180.0;
+
+    // Needle end (relative to center after rotation)
+    private double NeedleLength => Radius - Stroke * 0.8;
+    private double NeedleX => 100 + NeedleLength * Math.Cos(Deg2Rad(0)); // 0 before rotation
+    private double NeedleY => 100 + NeedleLength * Math.Sin(Deg2Rad(0));
+}

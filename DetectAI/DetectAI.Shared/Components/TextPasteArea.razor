@@ -1,0 +1,19 @@
+@using MudBlazor
+
+
+<MudTextField T="string"
+              @bind-Value="Text"
+              Label="Paste text here to begin analysis"
+              Variant="Variant.Filled"
+              Clearable="true"
+              Immediate="true"
+              Lines="10"
+              Style="width: 50dvw;"
+              Class="mt-3">
+</MudTextField>
+
+
+@code {
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public EventCallback<string?> TextChanged { get; set; }
+}

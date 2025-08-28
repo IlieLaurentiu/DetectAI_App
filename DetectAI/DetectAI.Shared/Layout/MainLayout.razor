@@ -3,6 +3,7 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject IThemeService ThemeSvc
+
 <MudThemeProvider @ref="_mudProvider"
                   Theme="ThemeSvc.Theme"
                   IsDarkMode="_dark" />

@@ -1,0 +1,54 @@
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Forms
+
+
+<MudFileUpload T="IReadOnlyList<IBrowserFile>"
+               @ref="_fileUpload"
+               Accept="@Accept"
+               Files="@Files"
+               FilesChanged="OnFilesChangedProxy"
+               For="@(() => Files)"
+               AppendMultipleFiles
+               Hidden="false"
+               InputClass="file-upload-input"
+               ErrorText="@string.Empty"
+               tabindex="-1"
+               @ondrop="@ClearDragClass"
+               @ondragenter="@SetDragClass"
+               @ondragleave="@ClearDragClass"
+               @ondragend="@ClearDragClass"
+               Style="width: 50dvw;">
+    <ActivatorContent>
+        <MudPaper Height="300px" Outlined="true" Class="@_dragClass">
+            <MudText Typo="Typo.h6">Drag & drop <br /> your files here or browse to upload</MudText>
+            <MudText Color="Color.Primary"><b>Only images, videos, audio or text files</b></MudText>
+            @foreach (var file in Files?.Select(f => f.Name) ?? Enumerable.Empty<string>())
+            {
+                <MudChip T="string" Color="Color.Dark" Text="@file" />
+            }
+        </MudPaper>
+    </ActivatorContent>
+</MudFileUpload>
+
+
+@code {
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+
+
+    [Parameter] public string Accept { get; set; } = string.Empty;
+    [Parameter] public IReadOnlyList<IBrowserFile>? Files { get; set; }
+    [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>?> FilesChanged { get; set; }
+
+
+    public Task OpenFilePickerAsync() => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+    public Task ClearAsync() => _fileUpload?.ClearAsync() ?? Task.CompletedTask;
+
+
+    private Task OnFilesChangedProxy(IReadOnlyList<IBrowserFile>? files) => FilesChanged.InvokeAsync(files);
+
+
+    private void SetDragClass() => _dragClass = $"{DefaultDragClass} mud-border-primary";
+    private void ClearDragClass() => _dragClass = DefaultDragClass;
+}

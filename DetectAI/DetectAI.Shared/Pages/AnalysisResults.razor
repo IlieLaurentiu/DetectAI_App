@@ -1,37 +1,101 @@
 @page "/AnalysisResults"
+@using DetectAI.Shared.Models
+@using DetectAI.Shared.Components
+@inject ForensicsState State
 
-<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
-    <MudGrid>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudGrid>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-                </MudItem>
-            </MudGrid>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 100%"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-    </MudGrid>
-</MudContainer>
+<MudStack Class="mx-8">
+    @if (State.LastResult is null)
+    {
+        <MudText>No results available.</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.h4" Class="ml-8 mt-8 fw-bold">Analysis Result:</MudText>
+        <MudText Typo="Typo.h4" Class="ml-8" Color="@(State.LastResult.combined_score > 0.6 ? Color.Success : Color.Error)"> 
+            @(State.LastResult.combined_score > 0.6 ? "Likely Normal" : "Likely AI")
+        </MudText>
+
+        @if (State.LastResult.image is not null)
+        {
+            <MudText Typo="Typo.h6" Class="ml-8 mt-8">Details:</MudText>
+
+            <MudContainer Class="px-8" MaxWidth="MaxWidth.False">
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"> @State.LastResult.image
+                            Image MetaData: @State.LastResult.image.exif_present
+                            </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                            <MudText Typo="Typo.h6" Color="@((State.LastResult.image.exif_score ?? 0) > 0.6 ? Color.Error : Color.Success)">
+                                EXIF score:
+                            </MudText>
+                            <RadialGauge Min="0" Max="3" Format="0.##" StartAngleDeg="135" SweepDeg="270" Value="@((double)State.LastResult.image.exif_score)" />
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="12" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                            <MudText Typo="Typo.h6" Color="@((State.LastResult.image.jpeg_q_score ?? 0) > 0.6 ? Color.Error : Color.Success)">
+                                JPEG Q score:
+                            </MudText>
+                            <RadialGauge Min="0" Max="3" Format="0.##" StartAngleDeg="135" SweepDeg="270" Value="@((double)State.LastResult.image.jpeg_q_score)" />
+                             
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                                    <MudText Typo="Typo.h6" Color="@((State.LastResult.image.residual_std_score ?? 0) > 0.6 ? Color.Error : Color.Success)">
+                                        Residual std score:
+                                    </MudText>
+                                    <RadialGauge Min="0" Max="3" Format="0.##" StartAngleDeg="135" SweepDeg="270" Value="@((double)State.LastResult.image.residual_std_score)" />
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">HF ratio: @State.LastResult.image.hf_ratio</MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%"></MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="12" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        }
+
+        @if (State.LastResult.video is not null)
+        {
+            <MudText Typo="Typo.h6">Video metrics:</MudText>
+            <MudList T="string">
+                <MudListItem>Frame score mean: @State.LastResult.video.frame_scores_mean</MudListItem>
+                <MudListItem>HF mean: @State.LastResult.video.hf_mean</MudListItem>
+            </MudList>
+        }
+
+        @if (State.LastResult.audio is not null)
+        {
+            <MudText Typo="Typo.h6">Audio metrics:</MudText>
+            <MudList T="string">
+                <MudListItem>Flatness score: @State.LastResult.audio.audio_flatness_score</MudListItem>
+            </MudList>
+        }
+    }
+</MudStack>
+
+
+
+
+@code {
+
+}
